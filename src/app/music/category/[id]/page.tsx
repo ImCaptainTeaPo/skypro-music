@@ -1,19 +1,19 @@
 'use client'
 
-import { getTracks } from '@/services/tracks/tracksApi'
-import { setAllTracks, setTracks } from '@/store/features/trackSlice'
-import { useAppDispatch, useAppSelector } from '@/store/store'
-import { Track } from '@/types/track'
 import { AxiosError } from 'axios'
 import { useParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { MusicTemplate } from '../../MusicTemplate'
+import { CenterBlock } from '../../../../components/CenterBlock/CenterBlock'
+import { getSelection, getTracks } from '../../../../services/tracks/tracksApi'
+import { setAllTracks, setTracks } from '../../../../store/features/trackSlice'
+import { useAppDispatch, useAppSelector } from '../../../../store/store'
+import { Track } from '../../../../types/track'
 
 export default function CategoryPage() {
 	const { id } = useParams<{ id: string }>()
 	const dispatch = useAppDispatch()
 	const { allTracks } = useAppSelector(state => state.tracks)
-	const { token } = useAppSelector(state => state.auth)
+	const { access } = useAppSelector(state => state.auth)
 
 	const [tracks, setLocalTracks] = useState<Track[]>([])
 	const [categoryName, setCategoryName] = useState<string>('')
@@ -28,11 +28,11 @@ export default function CategoryPage() {
 			setError('')
 
 			try {
-				const selectionData = await getTracks(id, token)
+				const selectionData = await getSelection(id, access)
 				setCategoryName(selectionData.name)
-				const trackIds: string[] = selectionData.items
+				const trackIds = selectionData.items
 
-				let tracksData: Track[] = allTracks
+				let tracksData = allTracks
 				if (!allTracks.length) {
 					tracksData = await getTracks()
 					dispatch(setAllTracks(tracksData))
@@ -55,12 +55,12 @@ export default function CategoryPage() {
 		}
 
 		fetchData()
-	}, [id, token, allTracks, dispatch])
+	}, [id, access, allTracks, dispatch])
 
 	return (
-		<MusicTemplate
+		<CenterBlock
 			tracks={tracks}
-			categoryName={categoryName}
+			title={categoryName}
 			error={error}
 			isLoading={isLoading}
 		/>
