@@ -1,0 +1,144 @@
+import { createSlice, PayloadAction } from '@reduxjs/toolkit'
+import { Track } from '../../types/track'
+
+type initialStateType = {
+	tracks: Track[]
+	allTracks: Track[]
+	favoriteTracks: Track[]
+	shuffledTracks: Track[]
+	currentTrack: null | Track
+	currentIndex: number
+	isPlay: boolean
+	isRepeat: boolean
+	isShuffle: boolean
+	volume: number
+	fetchError: null | string
+	fetchIsLoading: boolean
+}
+
+const initialState: initialStateType = {
+	tracks: [],
+	allTracks: [],
+	favoriteTracks: [],
+	shuffledTracks: [],
+	currentTrack: null,
+	currentIndex: -1,
+	isPlay: false,
+	isRepeat: false,
+	isShuffle: false,
+	volume: 0.5,
+	fetchError: null,
+	fetchIsLoading: true,
+}
+
+const trackSlice = createSlice({
+	name: 'tracks',
+	initialState,
+	reducers: {
+		setTracks: (state, action: PayloadAction<Track[]>) => {
+			state.tracks = action.payload
+			state.shuffledTracks = [...state.tracks].sort(() => Math.random() * 0.5)
+		},
+		setAllTracks: (state, action: PayloadAction<Track[]>) => {
+			state.allTracks = action.payload
+		},
+		setFavoriteTracks: (state, action: PayloadAction<Track[]>) => {
+			state.favoriteTracks = action.payload
+		},
+		addLikedTracks: (state, action) => {
+			state.favoriteTracks = [...state.favoriteTracks, action.payload]
+		},
+		removeLikedTracks: (state, action: PayloadAction<Track>) => {
+			state.favoriteTracks = state.favoriteTracks.filter(
+				t => t._id !== action.payload._id,
+			)
+		},
+		setCurrentTrack: (state, action: PayloadAction<Track>) => {
+			state.currentTrack = action.payload
+			state.currentIndex = state.tracks.findIndex(
+				t => t._id === action.payload._id,
+			)
+		},
+		setCurrentTrackByIndex: (state, action: PayloadAction<number>) => {
+			if (action.payload >= 0 && action.payload < state.tracks.length) {
+				state.currentIndex = action.payload
+				state.currentTrack = state.tracks[action.payload]
+			}
+		},
+		setIsPlay: (state, action: PayloadAction<boolean>) => {
+			state.isPlay = action.payload
+		},
+		toggleRepeat: state => {
+			state.isRepeat = !state.isRepeat
+		},
+		setRepeat: (state, action: PayloadAction<boolean>) => {
+			state.isRepeat = action.payload
+		},
+		toggleShuffle: state => {
+			state.isShuffle = !state.isShuffle
+			if (state.isShuffle) {
+				state.shuffledTracks = [...state.tracks].sort(() => Math.random() - 0.5)
+				if (state.currentTrack) {
+					state.currentIndex = state.shuffledTracks.findIndex(
+						t => t._id === state.currentTrack!._id,
+					)
+				}
+			} else {
+				if (state.currentTrack) {
+					state.currentIndex = state.tracks.findIndex(
+						t => t._id === state.currentTrack!._id,
+					)
+				}
+			}
+		},
+		playNext: state => {
+			const playlist = state.isShuffle ? state.shuffledTracks : state.tracks
+
+			if (playlist.length === 0) return
+
+			let nextIndex = state.currentIndex + 1
+			if (nextIndex >= playlist.length) nextIndex = 0
+			state.currentIndex = nextIndex
+			state.currentTrack = playlist[nextIndex]
+			state.isPlay = true
+		},
+		playPrev: state => {
+			const playlist = state.isShuffle ? state.shuffledTracks : state.tracks
+			if (playlist.length === 0) return
+
+			let prevIndex = state.currentIndex - 1
+			if (prevIndex < 0) prevIndex = playlist.length - 1
+			state.currentIndex = prevIndex
+			state.currentTrack = playlist[prevIndex]
+			state.isPlay = true
+		},
+		setVolume: (state, action: PayloadAction<number>) => {
+			state.volume = action.payload
+		},
+		setFetchError: (state, action: PayloadAction<string>) => {
+			state.fetchError = action.payload
+		},
+		setFetchIsLoading: (state, action: PayloadAction<boolean>) => {
+			state.fetchIsLoading = action.payload
+		},
+	},
+})
+
+export const {
+	setTracks,
+	setAllTracks,
+	setFavoriteTracks,
+	addLikedTracks,
+	removeLikedTracks,
+	setCurrentTrack,
+	setCurrentTrackByIndex,
+	setIsPlay,
+	setVolume,
+	toggleRepeat,
+	toggleShuffle,
+	playNext,
+	playPrev,
+	setFetchError,
+	setFetchIsLoading,
+} = trackSlice.actions
+export const trackSliceReducer = trackSlice.reducer
