@@ -1,5 +1,7 @@
 import type { Metadata } from 'next'
 import { Montserrat } from 'next/font/google'
+import 'react-toastify/dist/ReactToastify.css'
+import ReduxProvider from '../store/ReduxProvider'
 import './globals.css'
 
 const montserrat = Montserrat({
@@ -18,8 +20,10 @@ export default function RootLayout({
 	children: React.ReactNode
 }>) {
 	return (
-		<html lang='ru'>
-			<body className={`${montserrat.variable}`}>{children}</body>
-		</html>
+		<ReduxProvider>
+			<html lang='ru'>
+				<body className={`${montserrat.variable}`}>{children}</body>
+			</html>
+		</ReduxProvider>
 	)
 }
